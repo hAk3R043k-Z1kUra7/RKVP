@@ -16,7 +16,21 @@ const { ensureCartTable } = require('./utils/ensureCartTable');
 
 const app = express();
 
-app.use(cors());
+// GitHub Pages (HTTPS) → локальный API: нужен туннель; для экспериментов с localhost
+// Chrome может потребовать Access-Control-Allow-Private-Network на preflight.
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS' && req.headers['access-control-request-private-network'] === 'true') {
+    res.setHeader('Access-Control-Allow-Private-Network', 'true');
+  }
+  next();
+});
+
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  }),
+);
 app.use(express.json());
 
 app.get('/api/health', async (req, res) => {

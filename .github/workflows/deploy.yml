@@ -47,8 +47,7 @@ jobs:
       - name: Build
         working-directory: Frontend/orthodox-store
         run: npm run build
-        env:
-          VITE_API_URL: ${{ vars.VITE_API_URL }}
+        # VITE_API_URL берётся из .env.production (см. docs/pages-local-backend.md)
 
       - name: SPA fallback for client-side routing
         working-directory: Frontend/orthodox-store/dist

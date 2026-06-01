@@ -6,11 +6,13 @@
 
 | Сервис | URL |
 |--------|-----|
-| Фронтенд | _укажите ссылку после деплоя (Vercel, Netlify и т.д.)_ |
-| Бэкенд API | _укажите ссылку (Render, Railway, Fly.io и т.д.)_ |
+| Фронтенд | [GitHub Pages](https://krivetochkin.github.io/RKVP/) |
+| Бэкенд API | локально (см. docs) или облако (Render, Railway…) |
 | Репозиторий | _ссылка на GitHub/GitLab_ |
 
-После деплоя задайте переменную фронтенда `VITE_API_URL` на публичный URL бэкенда с суффиксом `/api`.
+**GitHub Pages + бэкенд на своём ПК:** прямой `localhost` с Pages не работает — нужен HTTPS-туннель. Инструкция: [docs/pages-local-backend.md](docs/pages-local-backend.md).
+
+Для полностью облачного деплоя задайте `VITE_API_URL` (Actions → Variables) на публичный URL API с суффиксом `/api`.
 
 ## Локальный запуск
 
