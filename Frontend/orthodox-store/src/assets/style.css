@@ -1,0 +1,23 @@
+:root {
+  --font-main: 'Akathistos', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Akathistos', Georgia, serif;
+
+  --primary: #8B0000;        /* Основной цвет (бордовый) */
+  --primary-hover: #5C0000;  /* При наведении */
+  --bg: #F8F5F0;             /* Фон страницы */
+  --surface: #FFFFFF;        /* Фон карточек/форм */
+  --text: #2C2C2C;           /* Основной текст */
+  --text-light: #666666;     /* Вторичный текст */
+  --border: #D4C8B8;         /* Границы */
+  --radius: 8px;             /* Скругление углов */
+  --shadow: 0 2px 8px rgba(0,0,0,0.08); /* Тени */
+}
+
+
+@font-face {
+  font-family: 'AkathistosFont';
+  src: url('./AkathistosFont.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap; /* Текст не будет "пропадать" при загрузке */
+}
