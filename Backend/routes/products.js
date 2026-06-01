@@ -1,6 +1,8 @@
 const express = require('express');
 const supabase = require('../supabaseClient');
 const authMiddleware = require('../middleware/auth');
+const sellerMiddleware = require('../middleware/seller');
+const { respondSupabaseError } = require('../utils/supabaseError');
 
 const router = express.Router();
 
@@ -23,12 +25,30 @@ function validateProduct({ name, price, category }) {
 // ─── GET /api/products  (публичный) ──────────────────────────────────────────
 // Поддерживает ?category=иконы и ?search=текст
 
+const SORT_COLUMNS = {
+  name: 'name',
+  price: 'price',
+  created_at: 'created_at',
+};
+
 router.get('/', async (req, res) => {
   try {
+    const usePagination =
+      req.query.page !== undefined || req.query.limit !== undefined;
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(48, Math.max(1, parseInt(req.query.limit, 10) || 12));
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+
+    const sortBy = SORT_COLUMNS[req.query.sortBy] || 'created_at';
+    const ascending = req.query.sortDir === 'asc';
+
     let query = supabase
       .from('products')
-      .select('id, name, description, price, category, image_url, created_at')
-      .order('created_at', { ascending: false });
+      .select('id, name, description, price, category, image_url, created_at', {
+        count: usePagination ? 'exact' : undefined,
+      })
+      .order(sortBy, { ascending });
 
     if (req.query.category) {
       query = query.eq('category', req.query.category);
@@ -36,14 +56,40 @@ router.get('/', async (req, res) => {
     if (req.query.search) {
       query = query.ilike('name', `%${req.query.search}%`);
     }
+    if (req.query.priceMin !== undefined && req.query.priceMin !== '') {
+      const min = Number(req.query.priceMin);
+      if (!Number.isNaN(min)) query = query.gte('price', min);
+    }
+    if (req.query.priceMax !== undefined && req.query.priceMax !== '') {
+      const max = Number(req.query.priceMax);
+      if (!Number.isNaN(max)) query = query.lte('price', max);
+    }
 
-    const { data, error } = await query;
+    const { data, error, count } = usePagination
+      ? await query.range(from, to)
+      : await query;
+
     if (error) throw error;
 
-    res.json({ products: data });
+    if (!usePagination) {
+      return res.json({ products: data });
+    }
+
+    const total = count ?? 0;
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+
+    res.json({
+      products: data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasMore: page < totalPages,
+      },
+    });
   } catch (err) {
-    console.error('GET /products error:', err);
-    res.status(500).json({ error: 'Ошибка сервера' });
+    respondSupabaseError(res, err);
   }
 });
 
@@ -63,14 +109,13 @@ router.get('/:id', async (req, res) => {
 
     res.json({ product: data });
   } catch (err) {
-    console.error('GET /products/:id error:', err);
-    res.status(500).json({ error: 'Ошибка сервера' });
+    respondSupabaseError(res, err);
   }
 });
 
 // ─── POST /api/products  (защищённый) ────────────────────────────────────────
 
-router.post('/', authMiddleware, async (req, res) => {
+router.post('/', authMiddleware, sellerMiddleware, async (req, res) => {
   const { name, description, price, category, image_url } = req.body;
 
   const errors = validateProduct({ name, price, category });
@@ -96,14 +141,13 @@ router.post('/', authMiddleware, async (req, res) => {
 
     res.status(201).json({ product: data });
   } catch (err) {
-    console.error('POST /products error:', err);
-    res.status(500).json({ error: 'Ошибка сервера' });
+    respondSupabaseError(res, err);
   }
 });
 
 // ─── PUT /api/products/:id  (защищённый) ─────────────────────────────────────
 
-router.put('/:id', authMiddleware, async (req, res) => {
+router.put('/:id', authMiddleware, sellerMiddleware, async (req, res) => {
   const { name, description, price, category, image_url } = req.body;
 
   const errors = validateProduct({ name, price, category });
@@ -140,14 +184,13 @@ router.put('/:id', authMiddleware, async (req, res) => {
 
     res.json({ product: data });
   } catch (err) {
-    console.error('PUT /products/:id error:', err);
-    res.status(500).json({ error: 'Ошибка сервера' });
+    respondSupabaseError(res, err);
   }
 });
 
 // ─── DELETE /api/products/:id  (защищённый) ──────────────────────────────────
 
-router.delete('/:id', authMiddleware, async (req, res) => {
+router.delete('/:id', authMiddleware, sellerMiddleware, async (req, res) => {
   try {
     const { data: existing, error: findError } = await supabase
       .from('products')
@@ -168,8 +211,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
 
     res.json({ message: 'Товар удалён' });
   } catch (err) {
-    console.error('DELETE /products/:id error:', err);
-    res.status(500).json({ error: 'Ошибка сервера' });
+    respondSupabaseError(res, err);
   }
 });
 

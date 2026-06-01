@@ -1,11 +1,14 @@
 <template>
   <div class="app">
-    <Header />
-    <main class="container">
-      <router-view />
-    </main>
+    <div class="app-shell">
+      <Header />
+      <main class="container main-content">
+        <router-view />
+      </main>
+    </div>
   </div>
 </template>
+
 <script setup>
 import Header from './components/Header.vue';
 </script>

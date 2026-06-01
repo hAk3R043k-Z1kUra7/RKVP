@@ -1,0 +1,11 @@
+-- Выполнить в Supabase SQL Editor
+
+ALTER TABLE users
+  ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'user';
+
+ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
+ALTER TABLE users
+  ADD CONSTRAINT users_role_check CHECK (role IN ('user', 'seller', 'admin'));
+
+-- Первый администратор (замените email):
+-- UPDATE users SET role = 'admin' WHERE email = 'admin@example.com';
