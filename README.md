@@ -111,9 +111,8 @@ npm run dev
 | Backend | Node.js, Express |
 | БД | PostgreSQL (Supabase) |
 | Auth | JWT, bcrypt |
-| Хостинг | _Vercel / Render / Supabase — по вашему выбору_ |
+| Хостинг | _Vercel / Render / Supabase  |
 
 Backend/          — Express API, миграции SQL
 Frontend/orthodox-store/  — Vue-приложение
-docs/screenshots/ — скриншоты для отчёта (создайте при сдаче)
 ```
