@@ -1,6 +1,11 @@
-# Деплой фронтенда (Vue + Vite) на GitHub Pages.
-# В настройках репозитория: Settings → Pages → Source: GitHub Actions.
-# base в vite.config.js и history в router должны совпадать с именем репозитория (/RKVP/).
+# Деплой фронтенда (Vue + Vite) на GitHub Pages (ветка gh-pages).
+#
+# Один раз в репозитории:
+# 1. Settings → Pages → Build and deployment → Source: Deploy from a branch
+# 2. Branch: gh-pages, Folder: / (root)
+# 3. Settings → Actions → General → Workflow permissions → Read and write
+#
+# base в vite.config.js и history в router: /RKVP/
 
 name: Deploy to GitHub Pages
 
@@ -15,16 +20,14 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -45,25 +48,15 @@ jobs:
         working-directory: Frontend/orthodox-store
         run: npm run build
         env:
-          # Задайте в Settings → Secrets and variables → Actions → Variables
           VITE_API_URL: ${{ vars.VITE_API_URL }}
 
       - name: SPA fallback for client-side routing
         working-directory: Frontend/orthodox-store/dist
         run: cp index.html 404.html
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: Frontend/orthodox-store/dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: Frontend/orthodox-store/dist
+          publish_branch: gh-pages
