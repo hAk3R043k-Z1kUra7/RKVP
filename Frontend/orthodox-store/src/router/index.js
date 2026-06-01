@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../views/Home.vue';
 import Login from '../views/Login.vue';
 import Register from '../views/Register.vue';
+import ForgotPassword from '../views/ForgotPassword.vue';
+import ResetPassword from '../views/ResetPassword.vue';
 import ProductList from '../views/ProductList.vue';
 import Cart from '../views/Cart.vue';
 import VirtualCandle from '../views/VirtualCandle.vue';
@@ -36,6 +38,18 @@ const routes = [
     path: '/auth/register',
     name: 'Register',
     component: Register,
+    meta: { guestOnly: true },
+  },
+  {
+    path: '/auth/forgot-password',
+    name: 'ForgotPassword',
+    component: ForgotPassword,
+    meta: { guestOnly: true },
+  },
+  {
+    path: '/auth/reset-password',
+    name: 'ResetPassword',
+    component: ResetPassword,
     meta: { guestOnly: true },
   },
   {

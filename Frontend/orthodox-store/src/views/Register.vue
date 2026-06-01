@@ -40,6 +40,18 @@
         </ul>
         <p v-if="fieldErrors.password" class="error">{{ fieldErrors.password }}</p>
       </div>
+      <div>
+        <input
+          v-model="recoveryKeyword"
+          type="text"
+          placeholder="Ключевое слово для сброса пароля"
+          autocomplete="off"
+          :class="{ 'input-invalid': fieldErrors.recoveryKeyword }"
+          @blur="validateField('recoveryKeyword')"
+        />
+        <p class="field-hint">Запомните его — понадобится, если забудете пароль (мин. 4 символа).</p>
+        <p v-if="fieldErrors.recoveryKeyword" class="error">{{ fieldErrors.recoveryKeyword }}</p>
+      </div>
       <button type="submit" class="btn btn-primary" :disabled="loading">
         {{ loading ? 'Регистрация...' : 'Зарегистрироваться' }}
       </button>
@@ -61,9 +73,11 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const name = ref('');
 const email = ref('');
 const password = ref('');
+const recoveryKeyword = ref('');
 const loading = ref(false);
 const error = ref('');
-const fieldErrors = reactive({ name: '', email: '', password: '' });
+const fieldErrors = reactive({ name: '', email: '', password: '', recoveryKeyword: '' });
+const KEYWORD_MIN = 4;
 const router = useRouter();
 const route = useRoute();
 const { setAuth } = useAuth();
@@ -82,13 +96,24 @@ function validateField(field) {
   if (field === 'password') {
     fieldErrors.password = getPasswordError(password.value);
   }
+  if (field === 'recoveryKeyword') {
+    const v = recoveryKeyword.value.trim();
+    fieldErrors.recoveryKeyword =
+      v.length >= KEYWORD_MIN ? '' : `Ключевое слово — минимум ${KEYWORD_MIN} символа`;
+  }
 }
 
 function validateForm() {
   validateField('name');
   validateField('email');
   validateField('password');
-  return !fieldErrors.name && !fieldErrors.email && !fieldErrors.password;
+  validateField('recoveryKeyword');
+  return (
+    !fieldErrors.name &&
+    !fieldErrors.email &&
+    !fieldErrors.password &&
+    !fieldErrors.recoveryKeyword
+  );
 }
 
 async function handleRegister() {
@@ -103,6 +128,7 @@ async function handleRegister() {
         name: name.value.trim(),
         email: email.value.trim().toLowerCase(),
         password: password.value,
+        recoveryKeyword: recoveryKeyword.value,
       }),
     });
     await setAuth(res);
@@ -115,3 +141,11 @@ async function handleRegister() {
   }
 }
 </script>
+
+<style scoped>
+.field-hint {
+  font-size: 0.85rem;
+  color: var(--text-muted, #666);
+  margin-top: 0.35rem;
+}
+</style>

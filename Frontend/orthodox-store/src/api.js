@@ -92,6 +92,27 @@ export async function updateProfile(body) {
   return apiFetch('/auth/me', { method: 'PATCH', body: JSON.stringify(body) });
 }
 
+export async function requestPasswordReset(email) {
+  return apiFetch('/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
+}
+
+export async function resetPasswordByToken({ token, newPassword }) {
+  return apiFetch('/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ token, newPassword }),
+  });
+}
+
+export async function resetPasswordByKeyword({ email, recoveryKeyword, newPassword }) {
+  return apiFetch('/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ email, recoveryKeyword, newPassword }),
+  });
+}
+
 export async function getCart() {
   return apiFetch('/cart');
 }

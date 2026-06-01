@@ -17,6 +17,7 @@
     "dotenv": "^16.x",
     "express": "^4.x",
     "jsonwebtoken": "^9.0.3",
+    "nodemailer": "^6.9.16",
     "nodemon": "^3.1.14",
     "pg": "^8.21.0"
   }

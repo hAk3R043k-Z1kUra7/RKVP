@@ -47,7 +47,7 @@
             </ul>
             <p v-if="passwordError" class="error">{{ passwordError }}</p>
           </div>
-          <div class="form-group" v-if="form.password">
+          <div class="form-group" v-if="form.password || form.recoveryKeyword">
             <label for="currentPassword">Текущий пароль</label>
             <input
               id="currentPassword"
@@ -55,6 +55,20 @@
               type="password"
               required
             />
+          </div>
+          <div class="form-group">
+            <label for="recoveryKeyword">Ключевое слово для сброса пароля</label>
+            <input
+              id="recoveryKeyword"
+              v-model="form.recoveryKeyword"
+              type="text"
+              autocomplete="off"
+              placeholder="Задайте или обновите (мин. 4 символа)"
+              :class="{ 'input-invalid': recoveryKeywordError }"
+              @blur="validateRecoveryKeyword"
+            />
+            <p class="field-hint">Используется на странице «Забыли пароль?», если письмо не пришло.</p>
+            <p v-if="recoveryKeywordError" class="error">{{ recoveryKeywordError }}</p>
           </div>
           <p v-if="error" class="error">{{ error }}</p>
           <p v-if="success" class="success-msg">{{ success }}</p>
@@ -80,13 +94,21 @@ const loading = ref(true);
 const saving = ref(false);
 const error = ref('');
 const success = ref('');
-const form = ref({ name: '', password: '', currentPassword: '' });
+const form = ref({ name: '', password: '', currentPassword: '', recoveryKeyword: '' });
 const passwordError = ref('');
+const recoveryKeywordError = ref('');
+const KEYWORD_MIN = 4;
 
 const passwordChecks = computed(() => getPasswordChecks(form.value.password));
 
 function validatePasswordField() {
   passwordError.value = form.value.password ? getPasswordError(form.value.password) : '';
+}
+
+function validateRecoveryKeyword() {
+  const v = form.value.recoveryKeyword.trim();
+  recoveryKeywordError.value =
+    !v || v.length >= KEYWORD_MIN ? '' : `Ключевое слово — минимум ${KEYWORD_MIN} символа`;
 }
 
 onMounted(async () => {
@@ -104,10 +126,14 @@ async function saveProfile() {
   if (form.value.password) {
     validatePasswordField();
     if (passwordError.value) return;
-    if (!form.value.currentPassword) {
-      error.value = 'Укажите текущий пароль';
-      return;
-    }
+  }
+  if (form.value.recoveryKeyword.trim()) {
+    validateRecoveryKeyword();
+    if (recoveryKeywordError.value) return;
+  }
+  if ((form.value.password || form.value.recoveryKeyword.trim()) && !form.value.currentPassword) {
+    error.value = 'Укажите текущий пароль';
+    return;
   }
 
   saving.value = true;
@@ -119,11 +145,16 @@ async function saveProfile() {
       body.password = form.value.password;
       body.currentPassword = form.value.currentPassword;
     }
+    if (form.value.recoveryKeyword.trim()) {
+      body.recoveryKeyword = form.value.recoveryKeyword.trim();
+      body.currentPassword = form.value.currentPassword;
+    }
     const res = await updateProfile(body);
     user.value = res.user;
     localStorage.setItem('user', JSON.stringify(res.user));
     form.value.password = '';
     form.value.currentPassword = '';
+    form.value.recoveryKeyword = '';
     success.value = 'Профиль обновлён';
   } catch (e) {
     error.value = e.message;
@@ -132,3 +163,11 @@ async function saveProfile() {
   }
 }
 </script>
+
+<style scoped>
+.field-hint {
+  font-size: 0.85rem;
+  color: var(--text-muted, #666);
+  margin-top: 0.35rem;
+}
+</style>

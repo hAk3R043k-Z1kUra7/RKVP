@@ -27,6 +27,9 @@
       </button>
       <p v-if="error" class="error">{{ error }}</p>
     </form>
+    <p class="auth-links">
+      <router-link to="/auth/forgot-password">Забыли пароль?</router-link>
+    </p>
     <p>Нет аккаунта? <router-link to="/auth/register">Зарегистрироваться</router-link></p>
   </div>
 </template>
